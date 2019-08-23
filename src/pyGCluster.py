@@ -33,7 +33,7 @@ The pyGCluster module contains the main class :py:class:`pyGCluster.Cluster` and
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-from __future__ import print_function
+
 import sys, os
 from collections import defaultdict as ddict
 from collections import OrderedDict
@@ -50,11 +50,11 @@ import itertools
 
 if sys.version_info[0] == 3:
     import pickle
-    def unicode(x, errors=None):
+    def str(x, errors=None):
         return x
     input = input
 else: # 2k, explicitely import cPickle
-    import cPickle as pickle
+    import pickle as pickle
     input = raw_input
 
 
@@ -666,7 +666,7 @@ class Cluster(dict):
         for condPos, condition in enumerate( conditions ):
             x = int(self[ 'Heat map'][ 'Params' ][ 'left border' ] + (condPos) * self[ 'Heat map'][ 'Params' ]['rBox width'] + self[ 'Heat map'][ 'Params' ]['rBox width'] / 2.0 )
             y = int(self[ 'Heat map'][ 'Params' ][ 'top border' ] - self[ 'Heat map'][ 'Params' ]['text spacing'] )
-            print(  unicode(
+            print(  str(
                             '            <text x="{0}" y="{1}" text-anchor="left" transform="rotate(-90, {0}, {1})">{2}</text>'.format(
                             x,
                             y,
@@ -691,7 +691,7 @@ class Cluster(dict):
                 shapeDict['x2_separator'] = shapeDict['x0'] + ( self[ 'Heat map'][ 'Params' ]['rBox width']  * len( conditions ))
                 
 
-                print( unicode('''
+                print( str('''
                             <line x1="{x1_separator}" y1="{y0}" x2="{x2_separator}" y2="{y0}" style="stroke:rgb{0};stroke-width:{1}"/>
                             '''.format(
                                     self[ 'Heat map'][ 'Params' ]['default color'],
@@ -727,7 +727,7 @@ class Cluster(dict):
                                                             number_of_separators = number_of_separators,
                     )
 
-                    print( unicode( self['Heat map']['SVG box styles'][ box_style ].format(
+                    print( str( self['Heat map']['SVG box styles'][ box_style ].format(
                                         rowPos,
                                         conPos,
                                         **shapeDict
@@ -748,7 +748,7 @@ class Cluster(dict):
                 if identifier in self[ 'Additional labels' ].keys():
                     shapeDict['text'] +=  ' '.join( self[ 'Additional labels' ][ identifier ])
 
-                print( unicode('''
+                print( str('''
             <g id="Text rowPos{0}_conPos{1}">
                 <title>{ratio}&#177;{std}</title>
                 <text xml:space='preserve' x="{x_text}" y="{y_text}">{text}</text>
@@ -821,7 +821,7 @@ class Cluster(dict):
                         ratio   = ratio,
                         std     = 0.0
             )
-            print( unicode( self['Heat map']['SVG box styles'][ box_style ].format(
+            print( str( self['Heat map']['SVG box styles'][ box_style ].format(
                                         y,
                                         2,
                                         **shapeDict
@@ -841,7 +841,7 @@ class Cluster(dict):
             shapeDict['r'] = 147
             shapeDict['g'] = 147
             shapeDict['b'] = 147
-            print( unicode(self['Heat map']['SVG box styles'][ box_style ].format(
+            print( str(self['Heat map']['SVG box styles'][ box_style ].format(
                                         y,
                                         3,
                                         **shapeDict
@@ -856,7 +856,7 @@ class Cluster(dict):
             shapeDict['text_left']             = '{0:3.2f}'.format( ratio )
             shapeDict['text_right']            = '{0:2.1f}'.format( std )
 
-            print( unicode('''
+            print( str('''
                     <g id="Legend {0}">
                         <title>{ratio}&#177;{std}</title>
                         <text xml:space='preserve' x="{x_text_left}" y="{y_text_left}">{text_left}</text>
@@ -1297,7 +1297,7 @@ class Cluster(dict):
 
         :rtype: None
         '''
-        self[ 'Function parameters' ][ self.resample.__name__ ] = { k : v for k, v in locals().items() if k != 'self' }
+        self[ 'Function parameters' ][ self.resample.__name__ ] = { k : v for k, v in list(locals().items()) if k != 'self' }
         import numpy
         import scipy.cluster.hierarchy as sch
         import scipy.spatial.distance as ssd
@@ -1317,7 +1317,7 @@ class Cluster(dict):
             s = '[ WARNING ] invalid distance metrices! "{0}" are not in "scipy.spatial.distance".'
             self._print( s.format( ', '.join( invalid_dists ) ), verbosity_level = 0 )
         # check if all linkage methods are valid:
-        invalid_linkages = set( self[ 'Linkages' ] ) - sch._cpy_linkage_methods
+        invalid_linkages = set( self[ 'Linkages' ] ) - set(sch._LINKAGE_METHODS.keys())
         if invalid_linkages:
             s = '[ WARNING ] invalid linkage methods! "{0}" are not in "scipy.cluster.hierarchy".'
             self._print( s.format( ', '.join( invalid_linkages ) ), verbosity_level = 0 )
@@ -1325,7 +1325,7 @@ class Cluster(dict):
         self[ 'Distance-linkage combinations' ] = []
         for distance in self[ 'Distances' ]:
             for linkage in self[ 'Linkages' ]:
-                if distance != 'euclidean' and linkage in sch._cpy_euclid_methods:
+                if distance != 'euclidean' and linkage in sch._EUCLIDEAN_METHODS:
                     continue
                 self[ 'Distance-linkage combinations' ].append( '{0}-{1}'.format( distance, linkage ) )
         n_dlc = len( self[ 'Distance-linkage combinations' ] )
@@ -1516,7 +1516,7 @@ class Cluster(dict):
                 self._print( '(enter "0" to stop resampling.)', verbosity_level = 1 )
                 self._print( '(enter "-1" to resample until iter_max (= {0}) is reached.)'.format( iter_max ), verbosity_level = 1 )
                 while True:
-                    answer = input( 'Enter a number ...' )
+                    answer = eval(input( 'Enter a number ...' ))
                     try:
                         iter_to_continue = int( answer )
                         break
@@ -1766,7 +1766,7 @@ class Cluster(dict):
 
         :rtype: None
         '''
-        self[ 'Function parameters' ][ self.plot_clusterfreqs.__name__ ] = { k : v for k, v in locals().items() if k != 'self' }
+        self[ 'Function parameters' ][ self.plot_clusterfreqs.__name__ ] = { k : v for k, v in list(locals().items()) if k != 'self' }
         allClusters_sortedByLength_l = sorted( self._get_most_frequent_clusters(min_cluster_size = min_cluster_size, top_X_clusters = top_X_clusters, threshold_4_the_lowest_max_freq = threshold_4_the_lowest_max_freq), key = len, reverse = True )
         identifiers = []
         data = {}
@@ -2018,7 +2018,7 @@ class Cluster(dict):
 
         :rtype: none
         '''
-        self[ 'Function parameters' ][ self.build_nodemap.__name__ ] = { k : v for k, v in locals().items() if k != 'self' }
+        self[ 'Function parameters' ][ self.build_nodemap.__name__ ] = { k : v for k, v in list(locals().items()) if k != 'self' }
         import scipy.spatial.distance as ssd
         imported_from_scipy = False
         try:
@@ -2332,7 +2332,7 @@ class Cluster(dict):
 
         :rtype: none
         '''
-        self[ 'Function parameters' ][ self.write_dot.__name__ ] = { k : v for k, v in locals().items() if k != 'self' }
+        self[ 'Function parameters' ][ self.write_dot.__name__ ] = { k : v for k, v in list(locals().items()) if k != 'self' }
         import numpy
         node_templateString = '"{nodeID}" [label="{label}", color="{color}", shape="{shape}", width="{freq}", height="{freq}", fixedsize=true, community={community}, c_members={c_members}, metrix="{metrix}", normalized_max_obCoFreq="{normalized_max_obCoFreq}"];'
         node_templateString_dict = {}
@@ -2631,7 +2631,7 @@ class Cluster(dict):
             conditions = self[ 'Conditions' ]
 
         # print(conditions)
-        self[ 'Function parameters' ][ self.draw_expression_profiles.__name__ ] = { k : v for k, v in locals().items() if k != 'self' }
+        self[ 'Function parameters' ][ self.draw_expression_profiles.__name__ ] = { k : v for k, v in list(locals().items()) if k != 'self' }
         import numpy
         FONT_SIZE = 10
         y_offset = 20

@@ -60,12 +60,13 @@ class TestpyGCluster(unittest.TestCase):
 
     def test_syntheticData(self):
         data = {}
-        for line in csv.DictReader(open('../exampleFiles/syntheticDataset.csv','r')):
-            gene = line['Gene']
-            if gene not in data.keys():
-                data[gene] = {}
-            for n in range(8):
-                data[ gene ][ str(n) ] = ( float(line['{0}_mean'.format(n)]) , float(line['{0}_std'.format(n)])   )
+        with open('../exampleFiles/syntheticDataset.csv', 'r') as input_file:
+            for line in csv.DictReader(input_file):
+                gene = line['Gene']
+                if gene not in data.keys():
+                    data[gene] = {}
+                for n in range(8):
+                    data[ gene ][ str(n) ] = ( float(line['{0}_mean'.format(n)]) , float(line['{0}_std'.format(n)])   )
 
         if not os.path.exists( WORKING_DIRECTORY ):
             os.mkdir( WORKING_DIRECTORY )
@@ -74,8 +75,6 @@ class TestpyGCluster(unittest.TestCase):
 [ INFO ] Result folder already {0} exists.
 [ INFO ] Old results might not be overwritten and lead to confusion ;)
 [ INFO ] Check file creation date!'''.format( WORKING_DIRECTORY ) )
-
-
 
         # if os.path.exists( os.path.join( WORKING_DIRECTORY, PICKLE_FILENAME ) ):
         #     _ = input('Pickle already')
@@ -106,7 +105,13 @@ class TestpyGCluster(unittest.TestCase):
         realIdsSet = set()
         for cluster in mostfreq:
             for index in cluster:
-                realIdsSet.add( TestCluster[ 'Identifiers' ][ index ] )
+                try:
+                    realIdsSet.add( TestCluster[ 'Identifiers' ][ index ] )
+                except:
+                    print(TestCluster[ 'Identifiers' ])
+                    print(cluster)
+                    print(index)
+                    realIdsSet.add( TestCluster[ 'Identifiers' ][ index ] )
 
         self.assertEqual( realIdsSet , self.testSet )
 
